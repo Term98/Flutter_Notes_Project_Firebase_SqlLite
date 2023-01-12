@@ -15,6 +15,7 @@ class NoteService {
 
   final _notesStreamController = 
     StreamController<List<DatabaseNote>>.broadcast();
+    Stream<List<DatabaseNote>>get allNotes => _notesStreamController.stream; 
 
   Future<DatabaseUser> getOrCreateUser({required String email}) async{
     try{
@@ -39,6 +40,7 @@ class NoteService {
     required DatabaseNote note,
     required String text,
   })async {
+    await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
 
     await getNote(id: note.id);
@@ -61,6 +63,7 @@ class NoteService {
   }
 
   Future<Iterable<DatabaseNote>> getAllNotes() async{
+    await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
     final notes = await db.query(
       noteTable,
@@ -69,6 +72,7 @@ class NoteService {
   }
 
   Future<DatabaseNote> getNote({required int id})async{
+    await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
     final notes = await db.query(
       noteTable,
@@ -88,6 +92,7 @@ class NoteService {
   }
 
   Future<int> deleteAllNote()async{
+    await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
     final numberOfDeletions = await  db.delete(noteTable);
     _notes =[];
@@ -96,6 +101,7 @@ class NoteService {
   }
 
   Future<void> deleteNote ({required int id}) async{
+    await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
     final deleteCount = await db.delete(
       userTable,
@@ -111,6 +117,7 @@ class NoteService {
   }
 
   Future<DatabaseNote> createNotes ({ required DatabaseUser owner }) async {
+    await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
 
     //make sure owner exists in the distance with the correct id 
@@ -138,6 +145,7 @@ class NoteService {
   }
 
   Future<DatabaseUser> getUser ({required String email}) async{
+    await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
     final results = await db.query(
       userTable,
@@ -153,6 +161,7 @@ class NoteService {
   }
 
   Future<DatabaseUser> createUser({required String email})async {
+    await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
     final result = await db.query(
       userTable,
@@ -199,6 +208,14 @@ class NoteService {
     }else {
       await db?.close();
       _db = null;
+    }
+  }
+
+  Future<void> _ensureDbIsOpen() async{
+    try{
+      await open();
+    } on DatabaseAlreadyOpenException{
+      //
     }
   }
 
