@@ -10,6 +10,8 @@ class AuthUser {
     required this.isEmailVerified
   });
 
+
+
   factory AuthUser.fromFirebase(User, user) => 
     AuthUser(
       email: user.email,
